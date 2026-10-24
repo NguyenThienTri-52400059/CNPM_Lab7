@@ -71,3 +71,11 @@ RestaurantManagement-app/
     └── login.php
 index.php
 
+### 4. Lịch sử git
+None, git repository vừa được tạo gần đây
+
+### 5. Đường dẫn pull request
+https://github.com/NguyenThienTri-52400059/CNPM_Lab7/pull/1
+
+### 6. Code review
+Code mới tạo làm placeholder, chưa hoàn chỉnh.
