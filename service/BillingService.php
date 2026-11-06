@@ -1,48 +1,96 @@
-// proof of concept
 <?php
-// service/BillingService.php
 
-class BillingService {
+declare(strict_types=1);
+
+class BillingService
+{
     private $invoiceDAO;
 
-    public function __construct($invoiceDAO) {
+    public function __construct($invoiceDAO)
+    {
         $this->invoiceDAO = $invoiceDAO;
     }
 
     /**
-     * Xử lý lập hóa đơn cho đơn hàng
+     * Tính số tiền khách phải thanh toán sau khi giảm giá.
+     *
+     * @param mixed $totalAmount Tổng tiền món ăn.
+     * @param mixed $discountAmount Số tiền được giảm.
+     *
+     * @return int|float Số tiền phải thanh toán.
      */
-    public function createInvoice($orderId, $totalAmount) {
-        if ($totalAmount < 0) {
-            throw new Exception("Tổng tiền hóa đơn không được âm (C07).");
+    public function calculatePayableAmount($totalAmount, $discountAmount = 0)
+    {
+        $totalIsNumber = is_int($totalAmount) || is_float($totalAmount);
+        $discountIsNumber = is_int($discountAmount) || is_float($discountAmount);
+
+        if (
+            !$totalIsNumber ||
+            !$discountIsNumber ||
+            !is_finite((float) $totalAmount) ||
+            !is_finite((float) $discountAmount) ||
+            $totalAmount < 0 ||
+            $discountAmount < 0 ||
+            $discountAmount > $totalAmount
+        ) {
+            throw new InvalidArgumentException(
+                'Dữ liệu hóa đơn không hợp lệ'
+            );
         }
 
-        // Trạng thái ban đầu của hóa đơn là UNPAID[cite: 10]
-        return $this->invoiceDAO->createInvoice($orderId, $totalAmount, 'UNPAID');
+        return $totalAmount - $discountAmount;
     }
 
     /**
-     * Xử lý giao dịch thanh toán (Tiền mặt hoặc Trực tuyến)
+     * Lập hóa đơn cho đơn hàng.
      */
-    public function processPayment($invoiceId, $method, $amount, $isSuccess, $transactionCode = null) {
-        // Xác định trạng thái thanh toán dựa trên kết quả thực tế (SUCCESS / FAILED)[cite: 11]
+    public function createInvoice($orderId, $totalAmount)
+    {
+        // Gọi hàm tính tiền để kiểm tra tổng hóa đơn.
+        $validatedAmount = $this->calculatePayableAmount($totalAmount);
+
+        return $this->invoiceDAO->createInvoice(
+            $orderId,
+            $validatedAmount,
+            'UNPAID'
+        );
+    }
+
+    /**
+     * Ghi nhận giao dịch thanh toán.
+     */
+    public function processPayment(
+        $invoiceId,
+        $method,
+        $amount,
+        $isSuccess,
+        $transactionCode = null
+    ) {
         $paymentStatus = $isSuccess ? 'SUCCESS' : 'FAILED';
 
-        // Ghi nhận lịch sử giao dịch vào bảng payments (kể cả lần thất bại theo BR08)[cite: 2, 5, 11]
-        $result = $this->invoiceDAO->recordPayment($invoiceId, $method, $amount, $paymentStatus, $transactionCode);
+        $result = $this->invoiceDAO->recordPayment(
+            $invoiceId,
+            $method,
+            $amount,
+            $paymentStatus,
+            $transactionCode
+        );
 
         if (!$result) {
-            throw new Exception("Không thể ghi nhận giao dịch thanh toán vào hệ thống.");
+            throw new RuntimeException(
+                'Không thể ghi nhận giao dịch thanh toán vào hệ thống.'
+            );
         }
 
         if (!$isSuccess) {
-            throw new Exception("Giao dịch thanh toán thất bại. Hóa đơn vẫn ở trạng thái chưa thanh toán (BR08).");
+            throw new RuntimeException(
+                'Giao dịch thanh toán thất bại. Hóa đơn vẫn chưa thanh toán.'
+            );
         }
 
         return [
             'status' => 'SUCCESS',
-            'message' => 'Thanh toán thành công, biên nhận đã được tạo.'
+            'message' => 'Thanh toán thành công, biên nhận đã được tạo.',
         ];
     }
 }
-?>

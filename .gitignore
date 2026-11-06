@@ -1,2 +1,6 @@
 /miscs/
 node_modules/
+
+# Composer executable and dependencies
+/composer.phar
+/vendor/
