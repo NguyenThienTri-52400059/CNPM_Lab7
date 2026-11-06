@@ -1,4 +1,3 @@
-// proof of concept
 <?php
 // dao/InvoiceDAO.php
 

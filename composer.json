@@ -1,0 +1,14 @@
+{
+  "name": "cnpm-lab7/restaurant-management",
+  "description": "Restaurant Management System with PHPUnit",
+  "type": "project",
+  "require-dev": {
+    "phpunit/phpunit": "^11.5"
+  },
+  "autoload": {
+    "classmap": [
+      "service/",
+      "dao/"
+    ]
+  }
+}

@@ -1,2 +1,14 @@
 /miscs/
 node_modules/
+
+# Composer executable and dependencies
+/composer.phar
+/vendor/
+
+# PHPUnit generated coverage
+/coverage/phpunit/
+/coverage/phpunit-clover.xml
+
+# PHPUnit cache
+/.phpunit.cache/
+.phpunit.result.cache
