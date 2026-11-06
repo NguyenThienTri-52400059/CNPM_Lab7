@@ -36,6 +36,26 @@ tests/
 ├── PaymentTest.php
 └── ReservationServiceTest.php
 
+## Minh chứng kiểm thử
+
+### Unit Test phát hiện lỗi tính tiền
+
+![Unit Test phát hiện lỗi tính tiền](evidence/lab09/01-test-failure.png)
+
+Test Case INV01 phát hiện kết quả thực tế 240.000 đồng không khớp kết quả mong đợi 200.000 đồng.
+
+### Toàn bộ Unit Test đạt
+
+![Toàn bộ Unit Test đạt](evidence/lab09/02-all-tests-pass.png)
+
+Kết quả cuối cùng có 37 test và 83 assertions, không có lỗi hoặc test thất bại.
+
+### Báo cáo Code Coverage
+
+![Báo cáo Code Coverage](evidence/lab09/03-code-coverage.png)
+
+Code Coverage đạt 100% Classes, Methods và Lines trong phạm vi kiểm thử.
+
 ## 8. Kết quả tổng hợp
 
 - Tổng số test: 37
