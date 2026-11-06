@@ -41,6 +41,23 @@ class BillingService
         return $totalAmount - $discountAmount;
     }
 
+
+        /**
+     * Kiểm tra số tiền thanh toán có hợp lệ hay không.
+     *
+     * @param mixed $amount Số tiền cần kiểm tra.
+     */
+    public function validatePaymentAmount($amount): bool
+    {
+        $isNumber = is_int($amount) || is_float($amount);
+
+        return
+            $isNumber &&
+            is_finite((float) $amount) &&
+            $amount > 0;
+    }
+
+
     /**
      * Lập hóa đơn cho đơn hàng.
      */
@@ -66,6 +83,11 @@ class BillingService
         $isSuccess,
         $transactionCode = null
     ) {
+            if (!$this->validatePaymentAmount($amount)) {
+            throw new InvalidArgumentException(
+                'Số tiền thanh toán không hợp lệ'
+            );
+        }
         $paymentStatus = $isSuccess ? 'SUCCESS' : 'FAILED';
 
         $result = $this->invoiceDAO->recordPayment(
