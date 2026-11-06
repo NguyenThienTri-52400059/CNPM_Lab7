@@ -244,4 +244,95 @@ final class ReservationServiceTest extends TestCase
             )
         );
     }
+        public function testRes11RejectsMissingRequiredField(): void
+    {
+        $data = $this->validReservation();
+        unset($data['customer_id']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'Dữ liệu đặt bàn không hợp lệ'
+        );
+
+        $this->reservationService->createReservation($data);
+    }
+
+    public function testRes12AcceptsNumericStringsFromForm(): void
+{
+    $data = $this->validReservation();
+    $data['customer_id'] = '1';
+    $data['table_id'] = '10';
+    $data['guest_count'] = '4';
+
+    $table = $this->availableTable();
+    $table['capacity'] = '4';
+
+    $this->tableDAO
+        ->method('getTableById')
+        ->with(10)
+        ->willReturn($table);
+
+    $this->reservationDAO
+        ->method('getReservationsByTable')
+        ->with(10)
+        ->willReturn([]);
+
+    $this->reservationDAO
+        ->expects($this->once())
+        ->method('createReservation')
+        ->with($this->callback(
+            static function (array $savedData): bool {
+                return
+                    $savedData['customer_id'] === 1 &&
+                    $savedData['table_id'] === 10 &&
+                    $savedData['guest_count'] === 4 &&
+                    $savedData['status'] === 'CONFIRMED';
+            }
+        ))
+        ->willReturn(true);
+
+    $this->assertTrue(
+        $this->reservationService->createReservation($data)
+    );
+}
+
+public function testRes13RejectsInvalidGuestCountType(): void
+{
+    $data = $this->validReservation();
+    $data['guest_count'] = 'four';
+
+    $this->expectException(InvalidArgumentException::class);
+    $this->expectExceptionMessage(
+        'Số khách phải là số nguyên dương'
+    );
+
+    $this->reservationService->createReservation($data);
+}
+
+public function testRes14RejectsEmptyReservationTime(): void
+{
+    $data = $this->validReservation();
+    $data['reserved_at'] = '';
+
+    $this->expectException(InvalidArgumentException::class);
+    $this->expectExceptionMessage(
+        'Thời gian đặt bàn không hợp lệ'
+    );
+
+    $this->reservationService->createReservation($data);
+}
+
+public function testRes15RejectsInvalidDateString(): void
+{
+    $data = $this->validReservation();
+    $data['reserved_at'] = 'not-a-valid-date';
+
+    $this->expectException(InvalidArgumentException::class);
+    $this->expectExceptionMessage(
+        'Thời gian đặt bàn không hợp lệ'
+    );
+
+    $this->reservationService->createReservation($data);
+}
+
 }

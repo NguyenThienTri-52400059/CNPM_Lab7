@@ -103,4 +103,25 @@ final class BillingServiceTest extends TestCase
 
         $this->billingService->calculatePayableAmount('220000', 0);
     }
+
+        public function testInv10CreatesUnpaidInvoice(): void
+    {
+        $invoiceDAO = $this->createMock(InvoiceDAO::class);
+
+        $invoiceDAO
+            ->expects($this->once())
+            ->method('createInvoice')
+            ->with(
+                12,
+                220000,
+                'UNPAID'
+            )
+            ->willReturn(501);
+
+        $billingService = new BillingService($invoiceDAO);
+
+        $result = $billingService->createInvoice(12, 220000);
+
+        $this->assertSame(501, $result);
+    }
 }
